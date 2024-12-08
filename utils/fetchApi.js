@@ -1,14 +1,39 @@
-import axios from "axios";
+export async function getServerSideProps({ params: { id } }) {
+  try {
+    // Fetch data from the API
+    const res = await fetch(
+      `https://realty-in-ca1.p.rapidapi.com/properties/detail?externalID=${id}`,
+      {
+        method: "GET",
+        headers: {
+          "x-rapidapi-key": process.env.RAPIDAPI_KEY, // Use the RAPIDAPI_KEY environment variable
+          "x-rapidapi-host": "realty-in-ca1.p.rapidapi.com",
+        },
+      }
+    );
 
-export const baseUrl = "realty-in-ca1.p.rapidapi.com";
+    // Check if the response is okay (status 200)
+    if (!res.ok) {
+      console.error("Failed to fetch property details", res.status);
+      return { notFound: true }; // Return a 404 if the fetch fails
+    }
 
-export const fetchApi = async (url) => {
-  const { data } = await axios.get(url, {
-    headers: {
-      "x-rapidapi-key": "b120e87163msh50a8f852ce5b4e2p1c44dfjsn9cc581729f51",
-      "x-rapidapi-host": "realty-in-ca1.p.rapidapi.com",
-    },
-  });
+    const data = await res.json();
 
-  return data;
-};
+    // Check if the data is valid
+    if (!data) {
+      console.error("No data found for the property with externalID:", id);
+      return { notFound: true }; // Return 404 if no data is found
+    }
+
+    // Return the data as props
+    return {
+      props: {
+        propertyDetails: data,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching property details:", error);
+    return { notFound: true }; // Return 404 if there is an error
+  }
+}

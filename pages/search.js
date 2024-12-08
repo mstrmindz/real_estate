@@ -6,7 +6,7 @@ import { BsFilter } from "react-icons/bs";
 
 import Property from "../components/Property";
 import SearchFilters from "../components/SearchFilters";
-import { baseUrl, fetchApi } from "../utils/fetchApi";
+import { baseUrl, fetchApi } from "../utils/fetchApi"; // Correct import
 import noresult from "../assets/images/noresult.svg";
 
 const Search = ({ properties }) => {
@@ -69,15 +69,29 @@ export async function getServerSideProps({ query }) {
   const locationExternalIDs = query.locationExternalIDs || "5002";
   const categoryExternalID = query.categoryExternalID || "4";
 
-  const data = await fetchApi(
-    `${baseUrl}/properties/list?locationExternalIDs=${locationExternalIDs}&purpose=${purpose}&categoryExternalID=${categoryExternalID}&bathsMin=${bathsMin}&rentFrequency=${rentFrequency}&priceMin=${minPrice}&priceMax=${maxPrice}&roomsMin=${roomsMin}&sort=${sort}&areaMax=${areaMax}`
-  );
+  // Correct the string interpolation with backticks (` `) for template literals
+  const apiUrl = `${baseUrl}/properties/list?locationExternalIDs=${locationExternalIDs}&purpose=${purpose}&categoryExternalID=${categoryExternalID}&bathsMin=${bathsMin}&rentFrequency=${rentFrequency}&priceMin=${minPrice}&priceMax=${maxPrice}&roomsMin=${roomsMin}&sort=${sort}&areaMax=${areaMax}`;
 
-  return {
-    props: {
-      properties: data?.hits,
-    },
-  };
+  try {
+    // Fetching the data from the API
+    const data = await fetchApi(apiUrl);
+
+    // Check if the data is valid and return the properties
+    return {
+      props: {
+        properties: data?.hits || [], // Use fallback empty array if no hits
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+
+    // If the API request fails, return an empty list
+    return {
+      props: {
+        properties: [],
+      },
+    };
+  }
 }
 
 export default Search;
